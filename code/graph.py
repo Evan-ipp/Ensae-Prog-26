@@ -1,7 +1,7 @@
 """
 This is the graph module. It contains the classes Graph and GraphImplicit
 """
-
+import numpy as np
 
 class Graph:
     """
@@ -28,5 +28,25 @@ class Graph:
         if node not in self._edges:
             return []
         return self._edges[node]
+
+    def shortest_path(self):
+        d = [np.inf for i in range(len(self._edges))]
+        visited = [False for i in range(len(self._edges))]
+        d[0] = 0
+
+        for i in range(len(self._edges)):
+            visited[i] = True
+            suiv = self._edges[i]
+            #voisin(num, distance)
+            for voisin in suiv:   
+                if not visited[voisin[0]]:
+                    if d[voisin[0]] > d[i]+voisin[1]:
+                        d[voisin[0]] = d[i]+voisin[1]
+        return d
+
+
+
+
+https://github.com/Evan-ipp/Ensae-Prog-26
 
 
