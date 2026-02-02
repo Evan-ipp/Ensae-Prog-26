@@ -4,7 +4,7 @@ from graph import Graph
 # Load the network
 network_file = "/home/onyxia/work/Ensae-Prog-26/examples/small.txt"
 network = Network.from_file(network_file)
-
+print(network)
 
 g = network.build_simple_graph()
 print(g._edges)
