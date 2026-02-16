@@ -2,6 +2,7 @@
 This is the graph module. It contains the classes Graph and GraphImplicit
 """
 import numpy as np
+import heapq
 
 class Graph:
     """
@@ -37,16 +38,47 @@ class Graph:
         for i in range(len(self._edges)):
             visited[i] = True
             suiv = self._edges[i]
-            #voisin(num, distance)
             for voisin in suiv:   
                 if not visited[voisin[0]]:
                     if d[voisin[0]] > d[i]+voisin[1]:
                         d[voisin[0]] = d[i]+voisin[1]
         return d
+    
+    def shortest_path2(self, start=0):
+        n = len(self._edges)
+        d = [np.inf for i in range(n)]
+        visited = [False for i in range(n)]
+        d[start] = 0
+        for i in range(n):
+            min_dist = np.inf
+            u = -1
+            for i in range(n):
+                if not visited[i] and d[i] < min_dist:
+                    min_dist = d[i]
+                    u = i
+            visited[u] = True
+            for voisin, poids in self.neighbours(u):
+                if not visited[voisin]:
+                    if d[u] + poids < d[voisin]:
+                        d[voisin] = d[u] + poids            
+        return d
 
+    def shortest_path3(self, start=0):
+        n = len(self._edges)
+        d = [np.inf for i in range(n)]
+        d[start] = 0
+        pq = [(0, start)]     
+        while pq:
+            dist_u, u = heapq.heappop(pq)
+            if dist_u > d[u]:
+                continue    
+            for voisin, poids in self.neighbours(u):
+                if d[u] + poids < d[voisin]:
+                    d[voisin] = d[u] + poids
+                    heapq.heappush(pq, (d[voisin], voisin))
+                    
+        return d
 
-
-
-https://github.com/Evan-ipp/Ensae-Prog-26
-
+##https://github.com/Evan-ipp/Ensae-Prog-26
+#pour chaque noeud on le duplique le maximum des fatigues fois 
 

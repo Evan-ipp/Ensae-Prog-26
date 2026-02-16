@@ -61,13 +61,16 @@ class Network:
         g = Graph(roads)
         return g
 
-    def build_extended_graph(self):
-        """
-        Builds an object of type Graph from the network, with the fatigue coefficient. 
-        """
+    def build_extended_graph0(self):
         roads = {}
         for u, v in self._roads.items():
             roads[u] = [(ele[0], ele[1]*ele[2]) for ele in v]
         g = Graph(roads)
         return g
+
+    def build_extended_graph(self):
+        s = sum()
+        roads = {}
+        for u,v in self._roads.items():
+            
 
