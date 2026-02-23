@@ -65,7 +65,7 @@ class Graph:
 
     def shortest_path3(self, start=0):
         n = len(self._edges)
-        d = [np.inf for i in range(n)]
+        d = {noeud: np.inf for noeud in self._edges.keys()}
         d[start] = 0
         pq = [(0, start)]     
         while pq:
@@ -78,6 +78,24 @@ class Graph:
                     heapq.heappush(pq, (d[voisin], voisin))
                     
         return d
+
+    def build_extended_graph(self):
+        fm = sum([f for u, voisins in self._roads.items() for (v, longueur, f) in voisins])
+        routes_etendues = {}
+        for u in self._roads.keys():
+            for fa in range(fm + 1):
+                routes_etendues[(u, fa)] = []         
+        for u, voisins in self._roads.items():
+            for fa in range(fm + 1):
+                for v, longueur, far in voisins:
+                    fs = fa + far
+                    if fs <= fm:
+                        routes_etendues[(u, fa)].append(((v, fs), longueur))              
+        return Graph(routes_etendues)
+
+    def graph_implicit(self):
+        
+
 
 ##https://github.com/Evan-ipp/Ensae-Prog-26
 #pour chaque noeud on le duplique le maximum des fatigues fois 
