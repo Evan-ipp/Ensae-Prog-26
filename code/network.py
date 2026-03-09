@@ -33,44 +33,72 @@ class Network:
 
     @classmethod
     def from_file(cls, filename: str):
-        """
-        Creates a Network from an environment file.
-
-        File format: one edge per line (start end length fatigue).
-        """
-        # Initialize adjacency list
         roads = {}
-
         with open(filename, "r") as testcase:
             nb, start, end = testcase.readline().strip().split()
             for _ in range(int(nb)):
                 i, j, l, f = testcase.readline().strip().split()
                 l, f = int(l), int(f)
-                roads.setdefault(i, []).append((j, l, f))
-                roads.setdefault(j, [])
+
+                if i not in roads:
+                    roads[i] = []
+                roads[i].append((j, l, f))
+
+                if j not in roads:
+                    roads[j] = []
 
         return cls(roads=roads, start=start, end=end)
 
     def build_simple_graph(self):
-        """
-        Builds an object of type Graph from the network, by ignoring the fatigue coefficient. 
-        """
-        roads = {}
-        for u, v in self._roads.items():
-            roads[u] = [(ele[0], ele[1]) for ele in v]
-        g = Graph(roads)
-        return g
-
-    def build_extended_graph0(self):
-        roads = {}
-        for u, v in self._roads.items():
-            roads[u] = [(ele[0], ele[1]*ele[2]) for ele in v]
-        g = Graph(roads)
-        return g
+        edges = {}
+        for u in self._roads.keys():
+            edges[u] = []
+            for e in self._roads[u]:
+                v = e[0]
+                longueur = e[1]
+                edges[u].append((v, longueur))
+        return Graph(edges)
 
     def build_extended_graph(self):
-        s = sum()
-        roads = {}
-        for u,v in self._roads.items():
-            
+        # 1. Calcul de la fatigue maximale avec des boucles classiques
+        fm = 0
+        for u in self._roads.keys():
+            for e in self._roads[u]:
+                fatigue = e[2]
+                fm = fm + fatigue
 
+        # 2. Construction du dictionnaire
+        routes_etendues = {}
+        for u in self._roads.keys():
+            for fa in range(fm + 1):
+                routes_etendues[(u, fa)] = []
+
+                for e in self._roads[u]:
+                    v = e[0]
+                    longueur = e[1]
+                    f = e[2]
+
+                    fs = fa + f
+                    if fs <= fm:
+                        routes_etendues[(u, fa)].append(((v, fs), longueur * (1 + fa)))
+
+        return Graph(routes_etendues)
+
+    def build_implicit_graph(self):
+        def generer_voisins(etat):
+            u = etat[0]
+            fa = etat[1]
+            voisins = []
+
+            if u in self._roads:
+                for e in self._roads[u]:
+                    v = e[0]
+                    longueur = e[1]
+                    f = e[2]
+
+                    nouvel_etat = (v, fa + f)
+                    voisins.append((nouvel_etat, longueur * (1 + fa)))
+
+            return voisins
+
+        return GraphImplicit(generer_voisins)

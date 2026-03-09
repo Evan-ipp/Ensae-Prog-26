@@ -1,18 +1,12 @@
 from network import Network
-from graph import Graph
 
-# Load the network
-network_file = "/home/onyxia/work/Ensae-Prog-26/examples/small.txt"
-network = Network.from_file(network_file)
-print(network)
+path = "/home/onyxia/work/Ensae-Prog-26/examples/"
+tests = [("small.txt", 125), ("medium-nofatigue.txt", 1771), ("medium-smallfatigue.txt", 29934), (
+    "medium-largefatigue.txt", 3462368), ("large-nofatigue.txt", 15137), 
+    ("large-smallfatigue.txt", 2000993), ("large-largefatigue.txt", 288955255)]
 
-g = network.build_simple_graph()
-print(g._edges)
-
-gpr = {0: [(1, 21), (2, 12)], 1: [(0, 74), (2, 32)], 2 : []}
-gp = Graph(gpr)
-print(gp.shortest_path())
-
-
-
-
+for fichier, attendu in tests:
+    network = Network.from_file(path + fichier)
+    g_implicite = network.build_implicit_graph()
+    resultat = g_implicite.shortest_path((network.start, 0), network.end)
+    print(f"{fichier} : {resultat}")

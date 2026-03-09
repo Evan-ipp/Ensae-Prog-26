@@ -29,74 +29,46 @@ class Graph:
         if node not in self._edges:
             return []
         return self._edges[node]
-
-    def shortest_path(self):
-        d = [np.inf for i in range(len(self._edges))]
-        visited = [False for i in range(len(self._edges))]
-        d[0] = 0
-
-        for i in range(len(self._edges)):
-            visited[i] = True
-            suiv = self._edges[i]
-            for voisin in suiv:   
-                if not visited[voisin[0]]:
-                    if d[voisin[0]] > d[i]+voisin[1]:
-                        d[voisin[0]] = d[i]+voisin[1]
-        return d
-    
-    def shortest_path2(self, start=0):
-        n = len(self._edges)
-        d = [np.inf for i in range(n)]
-        visited = [False for i in range(n)]
+   
+    def shortest_path(self, start, end):
+        d = {}
         d[start] = 0
-        for i in range(n):
-            min_dist = np.inf
-            u = -1
-            for i in range(n):
-                if not visited[i] and d[i] < min_dist:
-                    min_dist = d[i]
-                    u = i
-            visited[u] = True
-            for voisin, poids in self.neighbours(u):
-                if not visited[voisin]:
-                    if d[u] + poids < d[voisin]:
-                        d[voisin] = d[u] + poids            
-        return d
+        pq = [(0, start)]
 
-    def shortest_path3(self, start=0):
-        n = len(self._edges)
-        d = {noeud: np.inf for noeud in self._edges.keys()}
-        d[start] = 0
-        pq = [(0, start)]     
-        while pq:
+        while len(pq) > 0:
             dist_u, u = heapq.heappop(pq)
-            if dist_u > d[u]:
-                continue    
-            for voisin, poids in self.neighbours(u):
-                if d[u] + poids < d[voisin]:
-                    d[voisin] = d[u] + poids
-                    heapq.heappush(pq, (d[voisin], voisin))
-                    
-        return d
 
-    def build_extended_graph(self):
-        fm = sum([f for u, voisins in self._roads.items() for (v, longueur, f) in voisins])
-        routes_etendues = {}
-        for u in self._roads.keys():
-            for fa in range(fm + 1):
-                routes_etendues[(u, fa)] = []         
-        for u, voisins in self._roads.items():
-            for fa in range(fm + 1):
-                for v, longueur, far in voisins:
-                    fs = fa + far
-                    if fs <= fm:
-                        routes_etendues[(u, fa)].append(((v, fs), longueur))              
-        return Graph(routes_etendues)
+            # On vérifie si u est un tuple (cas du graphe étendu) ou une simple chaîne
+            if isinstance(u, tuple):
+                noeud = u[0]
+            else:
+                noeud = u
 
-    def graph_implicit(self):
-        
+            # Condition d'arrêt
+            if noeud == end:
+                return dist_u
 
+            # Si le noeud a déjà été visité avec un meilleur temps, on l'ignore
+            if u in d and dist_u > d[u]:
+                continue
 
-##https://github.com/Evan-ipp/Ensae-Prog-26
-#pour chaque noeud on le duplique le maximum des fatigues fois 
+            for voisin_data in self.neighbours(u):
+                voisin = voisin_data[0]
+                poids = voisin_data[1]
 
+                nouvelle_dist = dist_u + poids
+
+                # Si le voisin n'est pas encore dans d, ou si on a trouvé un meilleur chemin
+                if voisin not in d or nouvelle_dist < d[voisin]:
+                    d[voisin] = nouvelle_dist
+                    heapq.heappush(pq, (nouvelle_dist, voisin))
+
+        return np.inf
+ 
+
+class GraphImplicit(Graph):
+    def __init__(self, fonction_voisins):
+        self.fonction_voisins = fonction_voisins
+
+    def neighbours(self, node):
+        return self.fonction_voisins(node)
