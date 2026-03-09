@@ -60,14 +60,14 @@ class Network:
         return Graph(edges)
 
     def build_extended_graph(self):
-        # 1. Calcul de la fatigue maximale avec des boucles classiques
+        # 1. Calcul de la fatigue maximale
         fm = 0
         for u in self._roads.keys():
             for e in self._roads[u]:
-                fatigue = e[2]
-                fm = fm + fatigue
+                fa = e[2]
+                fm = fm + fa
 
-        # 2. Construction du dictionnaire
+        # 2. Construction du dictionnaire du graphe
         routes_etendues = {}
         for u in self._roads.keys():
             for fa in range(fm + 1):
