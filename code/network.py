@@ -50,6 +50,9 @@ class Network:
         return cls(roads=roads, start=start, end=end)
 
     def build_simple_graph(self):
+        """
+        Construit un graphe simple
+        """
         edges = {}
         for u in self._roads.keys():
             edges[u] = []
@@ -60,16 +63,20 @@ class Network:
         return Graph(edges)
 
     def build_extended_graph(self):
-        # 1. Calcul de la fatigue maximale
+        """
+        Construit un graphe etendu
+        """
+        # Calcul de la fatigue maximale possible
         fm = 0
         for u in self._roads.keys():
             for e in self._roads[u]:
                 fa = e[2]
                 fm = fm + fa
 
-        # 2. Construction du dictionnaire du graphe
+        # Construction du dictionnaire du graphe
         routes_etendues = {}
         for u in self._roads.keys():
+            # On duplique chaque noeud fm+1 fois
             for fa in range(fm + 1):
                 routes_etendues[(u, fa)] = []
 
@@ -85,6 +92,9 @@ class Network:
         return Graph(routes_etendues)
 
     def build_implicit_graph(self):
+        """
+        Construit un graphe implicite
+        """
         def generer_voisins(etat):
             u = etat[0]
             fa = etat[1]

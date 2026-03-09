@@ -31,6 +31,12 @@ class Graph:
         return self._edges[node]
    
     def shortest_path(self, start, end):
+        """
+        On applique l'algorithme de dijsktra avec une file de priorité.
+        La complexité est en :
+        Q1.1 : O(E * log(V))
+        Q1.2 : O(E*Fm * log(V*Fm)) car le graphe etendu possede V*Fm noeuds et E*Fm aretes.
+        """
         d = {}
         d[start] = 0
         pq = [(0, start)]
@@ -38,13 +44,12 @@ class Graph:
         while len(pq) > 0:
             dist_u, u = heapq.heappop(pq)
 
-            # On vérifie si u est un tuple (cas du graphe étendu) ou une simple chaîne
+            # On vérifie si on est dans le cas du graphe simple ou du graphe étendu
             if isinstance(u, tuple):
                 noeud = u[0]
             else:
                 noeud = u
 
-            # Condition d'arrêt
             if noeud == end:
                 return dist_u
 
@@ -67,6 +72,9 @@ class Graph:
  
 
 class GraphImplicit(Graph):
+    """
+    Sous classe de Graph permettant de générer un graphe avec uniquement les voisins visités lors du parcours.
+    """
     def __init__(self, fonction_voisins):
         self.fonction_voisins = fonction_voisins
 
