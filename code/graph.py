@@ -57,16 +57,16 @@ class Graph:
             if u in d and dist_u > d[u]:
                 continue
 
-            for voisin_data in self.neighbours(u):
-                voisin = voisin_data[0]
-                poids = voisin_data[1]
+            for voisin in self.neighbours(u):
+                v = voisin[0]
+                poids = voisin[1]
 
                 nouvelle_dist = dist_u + poids
 
                 # Si le voisin n'est pas encore dans d, ou si on a trouvé un meilleur chemin
-                if voisin not in d or nouvelle_dist < d[voisin]:
-                    d[voisin] = nouvelle_dist
-                    heapq.heappush(pq, (nouvelle_dist, voisin))
+                if v not in d or nouvelle_dist < d[v]:
+                    d[v] = nouvelle_dist
+                    heapq.heappush(pq, (nouvelle_dist, v))
 
         return np.inf
  
