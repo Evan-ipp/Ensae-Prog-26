@@ -9,8 +9,8 @@ tests = [("small.txt", 125), ("medium-nofatigue.txt", 1771), ("medium-smallfatig
 for fichier, attendu in tests[:3]:
     network = Network.from_file(path + fichier)
     g_extended = network.build_extended_graph()
-    result = g_extended.shortest_path((network.start, 0), network.end)
-    print(f"{fichier} (Étendu) : {result} - {attendu}")
+    resultat = g_extended.shortest_path((network.start, 0), network.end)
+    print(f"{fichier} (Étendu) : {resultat} - {attendu}")
 
 for fichier, attendu in tests:
     network = Network.from_file(path + fichier)

@@ -30,30 +30,45 @@ class Graph:
             return []
         return self._edges[node]
    
-    def shortest_path(self, start, end):
+    def shortest_path(self, start, end, heuristique=None):
         """
-        On applique l'algorithme de dijsktra avec une file de priorité.
-        La complexité est en :
-        Q1.1 : O(E * log(V))
-        Q1.2 : O(E*Fm * log(V*Fm)) car le graphe etendu possede V*Fm noeuds et E*Fm aretes.
+        Algorithme A* (ou Dijkstra si heuristique est None) avec Pruning de Pareto.
         """
+        # Si on ne donne pas d'heuristique (Dijkstra classique), on crée une 
+        # fausse fonction qui renvoie toujours 0.
+        if heuristique is None:
+            def h_nulle(noeud):
+                return 0
+            heuristique = h_nulle
+
         d = {}
         d[start] = 0
-        pq = [(0, start)]
+        
+        # La file contient maintenant (f_score, vraie_distance, u)
+        # Au départ, f_score = 0 + h(start)
+        f_start = 0 + heuristique(start)
+        pq = [(f_start, 0, start)]
+        
+        fatigue_min_visitee = {}
 
         while len(pq) > 0:
-            dist_u, u = heapq.heappop(pq)
+            # On extrait les 3 éléments de la file
+            f_u, dist_u, u = heapq.heappop(pq)
 
-            # On vérifie si on est dans le cas du graphe simple ou du graphe étendu
             if isinstance(u, tuple):
                 noeud = u[0]
+                fatigue = u[1]
+                
+                # On applique le pruning
+                if noeud in fatigue_min_visitee and fatigue >= fatigue_min_visitee[noeud]:
+                    continue
+                fatigue_min_visitee[noeud] = fatigue
             else:
                 noeud = u
 
             if noeud == end:
-                return dist_u
+                return dist_u 
 
-            # Si le noeud a déjà été visité avec un meilleur temps, on l'ignore
             if u in d and dist_u > d[u]:
                 continue
 
@@ -63,13 +78,24 @@ class Graph:
 
                 nouvelle_dist = dist_u + poids
 
-                # Si le voisin n'est pas encore dans d, ou si on a trouvé un meilleur chemin
                 if v not in d or nouvelle_dist < d[v]:
                     d[v] = nouvelle_dist
-                    heapq.heappush(pq, (nouvelle_dist, v))
+                    
+                    if isinstance(v, tuple):
+                        nom_ville_voisin = v[0]
+                    else:
+                        nom_ville_voisin = v
+                        
+                    # f(n) = g(n) + h(n)
+                    f_score = nouvelle_dist + heuristique(nom_ville_voisin)
+                    
+                    # On ajoute le triplet dans la file
+                    heapq.heappush(pq, (f_score, nouvelle_dist, v))
 
         return np.inf
- 
+
+def heuristique(noeud) :
+    
 
 class GraphImplicit(Graph):
     """
@@ -80,3 +106,6 @@ class GraphImplicit(Graph):
 
     def neighbours(self, node):
         return self.fonction_voisins(node)
+
+
+
