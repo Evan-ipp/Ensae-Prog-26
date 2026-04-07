@@ -94,8 +94,54 @@ class Graph:
 
         return np.inf
 
-def heuristique(noeud) :
+import heapq
+
+def creer_heuristique(network, end_node):
+    """
+    Crée une fonction heuristique admissible pour A*.
+    Elle pré-calcule la distance la plus courte (sans fatigue) depuis 
+    chaque nœud vers le nœud de fin en effectuant un Dijkstra sur le graphe inversé.
+    """
+    # 1. Construction du graphe inversé (on ignore la fatigue)
+    graphe_inverse = {}
     
+    # Initialisation des clés pour éviter les KeyError
+    for u in network._roads.keys():
+        if u not in graphe_inverse:
+            graphe_inverse[u] = []
+            
+    for u, voisins in network._roads.items():
+        for v, longueur, f in voisins:
+            if v not in graphe_inverse:
+                graphe_inverse[v] = []
+            # On inverse le sens de l'arête : v -> u
+            graphe_inverse[v].append((u, longueur))
+            
+    # 2. Dijkstra classique depuis end_node sur le graphe inversé
+    distances = {noeud: float('inf') for noeud in graphe_inverse}
+    if end_node in distances:
+        distances[end_node] = 0
+        
+    pq = [(0, end_node)]
+    
+    while pq:
+        dist_u, u = heapq.heappop(pq)
+        
+        if dist_u > distances[u]:
+            continue
+            
+        for voisin, poids in graphe_inverse[u]:
+            nouvelle_dist = dist_u + poids
+            if nouvelle_dist < distances[voisin]:
+                distances[voisin] = nouvelle_dist
+                heapq.heappush(pq, (nouvelle_dist, voisin))
+                
+    def heuristique(noeud):
+        # Si le nœud est déconnecté du point d'arrivée, on renvoie 0 par sécurité
+        # pour retomber sur un comportement de type Dijkstra classique.
+        return distances.get(noeud, 0)
+        
+    return heuristique
 
 class GraphImplicit(Graph):
     """
