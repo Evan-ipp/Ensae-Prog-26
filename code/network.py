@@ -112,3 +112,5 @@ class Network:
             return voisins
 
         return GraphImplicit(generer_voisins)
+
+        #aa
