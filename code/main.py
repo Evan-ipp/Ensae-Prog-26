@@ -56,7 +56,6 @@ if __name__ == "__main__":
         print(f"  A* (h1 Simple) : {res_h1} ({duree_h1:.4f} s)")
         print(f"  A* (h2 Fatigue): {res_h2} ({duree_h2:.4f} s)")
 
-<<<<<<< HEAD
     print("\nExtension 1 : Missions Multiples (Ordre Impose vs Libre)")
     fichiers_ext1 = ["small.txt", "medium-nofatigue.txt", "medium-smallfatigue.txt", "large-nofatigue.txt"]
 
@@ -95,69 +94,3 @@ if __name__ == "__main__":
             print("  -> L'ordre libre optimise le cout global.")
 
     print("\nFin de l'execution.")
-=======
-print("\nFin de l'execution des tests de base.")
-
-
-# ============================================================
-#  TEST EXTENSION 1 : Missions Multiples Ordonnees
-# ============================================================
-print("\n============================================================")
-print(" TEST EXTENSION 1 : Missions Multiples Ordonnees")
-print("============================================================")
-
-fichier_ext1 = "small.txt"
-network_ext1 = Network.from_file(path + fichier_ext1)
-
-# Definition des missions : l'agent doit faire 0->2, puis 1->4
-missions = [("0", "2"), ("1", "4")]
-
-g_multi, cibles = network_ext1.build_multimission_implicit_graph(missions)
-
-start_node = missions[0][0]
-etape_depart = 0
-
-# Ajustement au cas ou le point de depart valide deja une cible
-while etape_depart < len(cibles) and start_node == cibles[etape_depart]:
-    etape_depart += 1
-
-etat_initial = ((start_node, etape_depart), 0)
-etat_final_attendu = (cibles[-1], len(cibles))
-
-start_time_ext1 = time.time()
-cout_minimal_ordonne = g_multi.shortest_path(etat_initial, etat_final_attendu)
-duree_ext1 = time.time() - start_time_ext1
-
-print(f"[Fichier] {fichier_ext1}")
-print(f"  - Missions imposees : {missions}")
-print(f"  - Cibles successives a valider : {cibles}")
-print(f"  - Cout total optimal trouve : {cout_minimal_ordonne}")
-print(f"  - Temps de calcul : {duree_ext1:.4f} sec")
-
-
-# ============================================================
-#  TEST EXTENSION 1 (Variante) : Missions Multiples Ordre Libre
-# ============================================================
-print("\n============================================================")
-print(" TEST EXTENSION 1 (Variante) : Missions Multiples Ordre Libre")
-print("============================================================")
-
-fichier_ext1_libre = "small.txt"
-network_ext1_libre = Network.from_file(path + fichier_ext1_libre)
-
-missions_libres = [("0", "2"), ("1", "4")]
-
-g_multi_libre = network_ext1_libre.build_free_order_multimission_graph(missions_libres)
-
-# L'etat initial : on demarre de "0", on n'a accompli aucune mission (frozenset vide), et on est libre (-1)
-etat_initial_libre = ((network_ext1_libre.start, frozenset(), -1), 0)
-
-start_time_libre = time.time()
-cout_minimal_libre = g_multi_libre.shortest_path(etat_initial_libre, "ETAT_FINAL")
-duree_libre = time.time() - start_time_libre
-
-print(f"[Fichier] {fichier_ext1_libre}")
-print(f"  - Missions disponibles : {missions_libres}")
-print(f"  - Cout minimal optimal (ordre libre) : {cout_minimal_libre}")
-print(f"  - Temps de calcul : {duree_libre:.4f} sec")
->>>>>>> 78bd5feffe9b1b7911e07cb00d415368b67c4689
