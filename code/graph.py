@@ -96,16 +96,13 @@ class Graph:
 
 import heapq
 
-def creer_heuristique(network, end_node):
+def creer_heuristiques(network, end_node):
     """
-    Crée une fonction heuristique admissible pour A*.
-    Elle pré-calcule la distance la plus courte (sans fatigue) depuis 
-    chaque nœud vers le nœud de fin en effectuant un Dijkstra sur le graphe inversé.
+    Pré-calcule les distances physiques et renvoie deux heuristiques :
+    1. h_simple : distance basique (sans fatigue)
+    2. h_fatigue : distance ajustée avec la fatigue instantanée
     """
-    # 1. Construction du graphe inversé (on ignore la fatigue)
     graphe_inverse = {}
-    
-    # Initialisation des clés pour éviter les KeyError
     for u in network._roads.keys():
         if u not in graphe_inverse:
             graphe_inverse[u] = []
@@ -114,34 +111,55 @@ def creer_heuristique(network, end_node):
         for v, longueur, f in voisins:
             if v not in graphe_inverse:
                 graphe_inverse[v] = []
-            # On inverse le sens de l'arête : v -> u
             graphe_inverse[v].append((u, longueur))
             
-    # 2. Dijkstra classique depuis end_node sur le graphe inversé
     distances = {noeud: float('inf') for noeud in graphe_inverse}
     if end_node in distances:
         distances[end_node] = 0
         
     pq = [(0, end_node)]
-    
     while pq:
         dist_u, u = heapq.heappop(pq)
-        
         if dist_u > distances[u]:
             continue
-            
         for voisin, poids in graphe_inverse[u]:
             nouvelle_dist = dist_u + poids
             if nouvelle_dist < distances[voisin]:
                 distances[voisin] = nouvelle_dist
                 heapq.heappush(pq, (nouvelle_dist, voisin))
                 
-    def heuristique(noeud):
-        # Si le nœud est déconnecté du point d'arrivée, on renvoie 0 par sécurité
-        # pour retomber sur un comportement de type Dijkstra classique.
-        return distances.get(noeud, 0)
+    #heuristique 1 : en ne prenant pas en compte la fatigue
+    def h_simple(etat):
+        if isinstance(etat, tuple):
+            noeud_logique = etat[0]
+            if isinstance(noeud_logique, tuple):
+                ville = noeud_logique[0]
+            elif isinstance(noeud_logique, str):
+                ville = noeud_logique
+            else:
+                return 0
+        else:
+            ville = etat
+        return distances.get(ville, 0)
         
-    return heuristique
+    #heuristique 2 : en prenant en compte la fatigue
+    def h_fatigue(etat):
+        fatigue = 0
+        if isinstance(etat, tuple):
+            noeud_logique = etat[0]
+            fatigue = etat[1]
+            if isinstance(noeud_logique, tuple):
+                ville = noeud_logique[0]
+            elif isinstance(noeud_logique, str):
+                ville = noeud_logique
+            else:
+                return 0
+        else:
+            ville = etat
+        dist_physique = distances.get(ville, 0)
+        return dist_physique * (1 + fatigue)
+        
+    return h_simple, h_fatigue
 
 class GraphImplicit(Graph):
     """
