@@ -1,4 +1,5 @@
 import time
+import random
 from network import Network
 from graph import creer_heuristiques
 
@@ -53,22 +54,21 @@ if __name__ == "__main__":
             print(f"  Dijkstra       : {res_dijkstra} ({duree_dijkstra:.4f} s)")
         else:
             print(f"  Dijkstra       : Non execute")
-        print(f"  A* (h1 Simple) : {res_h1} ({duree_h1:.4f} s)")
-        print(f"  A* (h2 Fatigue): {res_h2} ({duree_h2:.4f} s)")
+        print(f"  A* (H1 Simple) : {res_h1} ({duree_h1:.4f} s)")
+        print(f"  A* (H2 Fatigue): {res_h2} ({duree_h2:.4f} s)")
 
-    print("\nExtension 1 : Missions Multiples (Ordre Impose vs Libre)")
-    fichiers_ext1 = ["small.txt", "medium-nofatigue.txt", "medium-smallfatigue.txt", "large-nofatigue.txt"]
+    print("\nExtension 1 : Missions Multiples (Explosion Combinatoire)")
+    
+    fichier_test = "medium-nofatigue.txt"
+    reseau = Network.from_file(path + fichier_test)
+    villes = list(reseau._roads.keys())
+    
+    random.seed(42) 
 
-    for fichier in fichiers_ext1:
-        reseau = Network.from_file(path + fichier)
-        villes = list(reseau._roads.keys())
+    for k in [2, 4, 10]:
+        print(f"\nTest avec {k} missions sur {fichier_test}")
         
-        if len(villes) >= 4:
-            missions = [(villes[0], villes[1]), (villes[2], villes[3])]
-        if fichier == "small.txt":
-            missions = [('lozere', 'guichet'), ('ensae', 'saclay')]
-            
-        print(f"\n{fichier}, Missions : {missions}")
+        missions = [tuple(random.sample(villes, 2)) for _ in range(k)]
         
         # 1. Ordre Impose
         g_multi_ordonne, cibles = reseau.construire_graphe_missions_ordonnees(missions)
@@ -80,17 +80,16 @@ if __name__ == "__main__":
         start_t = time.time()
         cout_ordonne = g_multi_ordonne.shortest_path(((start_node, etape_depart), 0), (cibles[-1], len(cibles)))
         duree_ordonne = time.time() - start_t
+        print(f"  Ordre Impose : Cout = {cout_ordonne}, Temps = {duree_ordonne:.4f} s")
         
         # 2. Ordre Libre
         g_multi_libre = reseau.construire_graphe_missions_libres(missions)
         start_t = time.time()
-        cout_libre = g_multi_libre.shortest_path(((start_node, frozenset(), -1), 0), "etat final")
-        duree_libre = time.time() - start_t
         
-        print(f"  Ordre Impose : Cout = {cout_ordonne}, Temps = {duree_ordonne:.4f} s")
+        # Utilisation de l'etat final corrige : ("ZZZ_FIN", frozenset(), -1)
+        cout_libre = g_multi_libre.shortest_path(((start_node, frozenset(), -1), 0), ("ZZZ_FIN", frozenset(), -1))
+        
+        duree_libre = time.time() - start_t
         print(f"  Ordre Libre  : Cout = {cout_libre}, Temps = {duree_libre:.4f} s")
-
-        if cout_libre < cout_ordonne:
-            print("  -> L'ordre libre optimise le cout global.")
 
     print("\nFin de l'execution.")
