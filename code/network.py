@@ -113,6 +113,7 @@ class Network:
 
         return GraphImplicit(generer_voisins)
 
+<<<<<<< HEAD
     def construire_graphe_missions_ordonnees(self, missions):
         """
         Construit un graphe implicite pour des missions multiples avec un ordre impose.
@@ -149,20 +150,89 @@ class Network:
                     cout = longueur * (1 + fa)
                     # On reste a la meme etape de mission tant qu'on n'a pas atteint la cible
                     voisins.append((((v, etape), nouvelle_fatigue), cout))
+=======
+    def build_multimission_implicit_graph(self, missions):
+        """
+        Construit un graphe implicite pour le cas de multiples missions ordonnees.
+        
+        Parametres:
+        -----------
+        missions : list of tuples
+            Liste des missions sous la forme [(depart_1, arrivee_1), (depart_2, arrivee_2), ...]
+            
+        Retourne:
+        ---------
+        Un objet GraphImplicit et la liste des cibles successives a atteindre.
+        """
+        if not missions:
+            raise ValueError("La liste des missions ne peut pas etre vide.")
+
+        # Construction de la liste chronologique des points de passage obligatoires.
+        # L'agent commence a depart_1. Il doit atteindre arrivee_1, puis depart_2, arrivee_2, etc.
+        cibles = []
+        for i, (s, t) in enumerate(missions):
+            if i > 0:
+                cibles.append(s)
+            cibles.append(t)
+            
+        nb_cibles = len(cibles)
+        
+        def generer_voisins(etat):
+            # Dans ce graphe, l'etat est un tuple : ((ville, etape), fatigue)
+            n_e = etat[0]
+            ville_actuelle = n_e[0]
+            etape = n_e[1]
+            fa = etat[1]
+            
+            voisins = []
+            
+            # Si toutes les cibles sont atteintes, on arrete l'exploration de cette branche
+            if etape == nb_cibles:
+                return voisins
+                
+            if ville_actuelle in self._roads:
+                for e in self._roads[ville_actuelle]:
+                    v = e[0]
+                    longueur = e[1]
+                    f = e[2]
+                    
+                    nouvelle_fatigue = fa + f
+                    cout = longueur * (1 + fa)
+                    
+                    # Verification : a-t-on atteint la cible attendue pour l'etape courante ?
+                    nouvelle_etape = etape
+                    # Boucle while au cas ou une meme ville validerait plusieurs etapes d'un coup
+                    while nouvelle_etape < nb_cibles and v == cibles[nouvelle_etape]:
+                        nouvelle_etape += 1
+                        
+                    nouvel_etat = ((v, nouvelle_etape), nouvelle_fatigue)
+                    voisins.append((nouvel_etat, cout))
+                    
+>>>>>>> 78bd5feffe9b1b7911e07cb00d415368b67c4689
             return voisins
 
         from graph import GraphImplicit
         return GraphImplicit(generer_voisins), cibles
+<<<<<<< HEAD
 
     def construire_graphe_missions_libres(self, missions):
         """
         Construit un graphe implicite pour des missions multiples sans ordre impose.
         L'agent doit accomplir toutes les missions, mais l'algorithme determine l'ordre optimal.
+=======
+    
+    def build_free_order_multimission_graph(self, missions):
+        """
+        Construit un graphe implicite pour des missions multiples sans ordre impose.
+        L'agent doit accomplir toutes les missions, mais l'algorithme determine 
+        l'ordre optimal de lui-meme.
+>>>>>>> 78bd5feffe9b1b7911e07cb00d415368b67c4689
         """
         nb_missions = len(missions)
         
         def generer_voisins(etat):
             # etat = (noeud_logique, fatigue_accumulee)
+<<<<<<< HEAD
             noeud_logique, fa = etat[0], etat[1]
             
             # Gestion de la condition d'arret
@@ -172,10 +242,24 @@ class Network:
             ville_actuelle = noeud_logique[0]
             accomplies = noeud_logique[1] # frozenset des indices de missions terminees
             en_cours = noeud_logique[2]    # index de la mission actuelle ou -1 si libre
+=======
+            # noeud_logique = (ville_actuelle, frozenset(missions_accomplies), mission_en_cours)
+            noeud_logique = etat[0]
+            fa = etat[1]
+            
+            # Gestion de la condition d'arret : on ne s'etend plus si on est a la fin
+            if noeud_logique == "ETAT_FINAL":
+                return []
+                
+            ville_actuelle = noeud_logique[0]
+            accomplies = noeud_logique[1]
+            en_cours = noeud_logique[2]
+>>>>>>> 78bd5feffe9b1b7911e07cb00d415368b67c4689
             
             voisins = []
             
             # 1. Condition de victoire globale
+<<<<<<< HEAD
             # Si le nombre de missions accomplies est egal au total
             if len(accomplies) == nb_missions:
                 # Transition vers le noeud de fin universel
@@ -188,10 +272,25 @@ class Network:
                 for i, (s, t) in enumerate(missions):
                     if i not in accomplies and ville_actuelle == s:
                         # On demarre la mission i
+=======
+            # Si toutes les missions sont dans l'ensemble 'accomplies'
+            if len(accomplies) == nb_missions:
+                # On cree une transition gratuite (cout 0) vers un noeud de fin universel
+                voisins.append((("ETAT_FINAL", fa), 0))
+                return voisins
+
+            # 2. Possibilite de commencer une nouvelle mission
+            # Condition : on ne doit pas etre deja en train de faire une mission (en_cours == -1)
+            if en_cours == -1:
+                for i, (s, t) in enumerate(missions):
+                    if i not in accomplies and ville_actuelle == s:
+                        # Transition logique : on demarre la mission (cout 0, fatigue inchangee)
+>>>>>>> 78bd5feffe9b1b7911e07cb00d415368b67c4689
                         nouvel_etat_logique = (ville_actuelle, accomplies, i)
                         voisins.append(((nouvel_etat_logique, fa), 0))
                         
             # 3. Possibilite de terminer la mission en cours
+<<<<<<< HEAD
             # On doit etre sur la ville destination de la mission active
             if en_cours != -1:
                 s, t = missions[en_cours]
@@ -206,10 +305,37 @@ class Network:
                 for v, longueur, f in self._roads[ville_actuelle]:
                     nouvelle_fatigue = fa + f
                     cout = longueur * (1 + fa)
+=======
+            # Condition : on est sur la destination de la mission active
+            if en_cours != -1:
+                s, t = missions[en_cours]
+                if ville_actuelle == t:
+                    # On ajoute la mission aux accomplies par union d'ensembles
+                    nouvelles_accomplies = accomplies | frozenset([en_cours])
+                    # On redevient libre (-1)
+                    nouvel_etat_logique = (ville_actuelle, nouvelles_accomplies, -1)
+                    voisins.append(((nouvel_etat_logique, fa), 0))
+                    
+            # 4. Deplacements physiques normaux sur le reseau routier
+            if ville_actuelle in self._roads:
+                for e in self._roads[ville_actuelle]:
+                    v = e[0]
+                    longueur = e[1]
+                    f = e[2]
+                    
+                    nouvelle_fatigue = fa + f
+                    cout = longueur * (1 + fa)
+                    
+>>>>>>> 78bd5feffe9b1b7911e07cb00d415368b67c4689
                     nouvel_etat_logique = (v, accomplies, en_cours)
                     voisins.append(((nouvel_etat_logique, nouvelle_fatigue), cout))
                     
             return voisins
 
         from graph import GraphImplicit
+<<<<<<< HEAD
         return GraphImplicit(generer_voisins)
+=======
+        return GraphImplicit(generer_voisins)
+    
+>>>>>>> 78bd5feffe9b1b7911e07cb00d415368b67c4689
