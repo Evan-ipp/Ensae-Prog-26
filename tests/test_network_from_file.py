@@ -76,7 +76,10 @@ class Test_NetworkAndAlgorithms(unittest.TestCase):
         g_multi = self.network.construire_graphe_missions_libres(missions)
         
         etat_initial = ((missions[0][0], frozenset(), -1), 0)
-        cout = g_multi.shortest_path(etat_initial, "etat final")
+        etat_final_attendu = ("ZZZ_FIN", frozenset(), -1)
+        
+        cout = g_multi.shortest_path(etat_initial, etat_final_attendu)
+        
         self.assertEqual(cout, 125)
 
 if __name__ == '__main__':
